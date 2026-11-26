@@ -1,0 +1,2 @@
+# southplusBatchOpen
+前端油猴插件 批量打开southplus页面并记录已读帖子

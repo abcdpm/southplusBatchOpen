@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         South Plus 批量打开 & 已读记录
 // @namespace    https://south-plus.net/
-// @version      1.2.1
+// @version      1.2.2
 // @description  在 south-plus.net 板块列表页 / 搜索结果页为每个帖子名左侧添加复选框，支持批量勾选/打开，并用 localStorage 记录已读帖子（已读帖子灰显且默认不勾选）
 // @author       Paccu
 // @match        http://south-plus.net/thread.php*
@@ -130,7 +130,7 @@
             '.z tr.sp-read:hover { background:#d6d6d6 !important; }',
             'tr.sp-read td { background:transparent !important; }',
             'tr.sp-read h3 a, tr.sp-read h3 font { color:#999 !important; }',
-            '.sp-check.sp-check-read { accent-color:#9ca3af; filter:grayscale(1); opacity:.55; cursor:not-allowed; }',
+            '.sp-check.sp-check-read { accent-color:#9ca3af; filter:grayscale(1); opacity:.55; cursor:pointer; }',
             '.sp-toolbar { position:fixed; bottom:12px; z-index:2147483647; display:flex; align-items:center; gap:8px; background:#ffffff; border:1px solid #dddddd; border-radius:8px; padding:8px 12px; box-shadow:0 2px 12px rgba(0,0,0,.18); font-family:Arial,"Microsoft YaHei",sans-serif; }',
             '.sp-toolbar-left { left:12px; }',
             '.sp-toolbar-right { right:12px; }',
@@ -177,7 +177,6 @@
         row.classList.add('sp-read');
         if (box) {
             box.checked = false;
-            box.disabled = true;
             box.classList.add('sp-check-read');
         }
     }
@@ -202,10 +201,9 @@
         label.appendChild(box);
         titleCell.insertBefore(label, titleCell.firstChild);
 
+        box.addEventListener('change', updateCount);
         if (loadReadTids().has(tid)) {
             markRowRead(row, box);
-        } else {
-            box.addEventListener('change', updateCount);
         }
     }
 
@@ -219,13 +217,15 @@
     }
 
     function updateCount() {
-        var boxes = document.querySelectorAll('input.sp-check:not(:disabled)');
+        var boxes = document.querySelectorAll('input.sp-check');
         var selected = 0;
+        var unread = 0;
         for (var i = 0; i < boxes.length; i++) {
             if (boxes[i].checked) selected++;
+            if (!boxes[i].classList.contains('sp-check-read')) unread++;
         }
         var el = document.getElementById('sp-count');
-        if (el) el.textContent = '已选 ' + selected + ' / 未读 ' + boxes.length;
+        if (el) el.textContent = '已选 ' + selected + ' / 未读 ' + unread;
     }
 
     // ---------- 工具栏 ----------
@@ -246,7 +246,8 @@
         document.body.appendChild(right);
 
         document.getElementById('sp-select-unread').addEventListener('click', function () {
-            var boxes = document.querySelectorAll('input.sp-check:not(:disabled)');
+            // 只自动勾选未读帖子，已读帖子默认不自动勾选
+            var boxes = document.querySelectorAll('input.sp-check:not(.sp-check-read)');
             for (var i = 0; i < boxes.length; i++) {
                 if (!boxes[i].checked) boxes[i].checked = true;
             }
@@ -254,7 +255,7 @@
         });
 
         document.getElementById('sp-deselect-all').addEventListener('click', function () {
-            var boxes = document.querySelectorAll('input.sp-check:not(:disabled)');
+            var boxes = document.querySelectorAll('input.sp-check');
             for (var i = 0; i < boxes.length; i++) {
                 boxes[i].checked = false;
             }

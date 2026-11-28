@@ -122,7 +122,7 @@ test('带 -fpage 的链接也能正确提取 tid', function () {
     assert.strictEqual(box.dataset.tid, '3001');
 });
 
-test('已读帖子置灰、复选框禁用且默认不勾选', function () {
+test('已读帖子置灰、默认不勾选但可手动勾选', function () {
     const rows = [{ tid: 4001, title: '已读' }, { tid: 4002, title: '未读' }];
     const { w } = makeWindow('https://south-plus.net/thread.php?fid-4.html', buildThreadHtml(rows));
     w.localStorage.setItem('southplus_read_threads', JSON.stringify(['4001']));
@@ -130,10 +130,25 @@ test('已读帖子置灰、复选框禁用且默认不勾选', function () {
 
     const readBox = w.document.querySelector('input.sp-check[data-tid="4001"]');
     const unreadBox = w.document.querySelector('input.sp-check[data-tid="4002"]');
-    assert.ok(readBox.disabled);
+
+    // 已读：默认不勾选、可手动勾选（不 disabled）、行置灰、复选框带灰色类
     assert.strictEqual(readBox.checked, false);
-    assert.strictEqual(unreadBox.disabled, false);
+    assert.strictEqual(readBox.disabled, false);
+    assert.ok(readBox.classList.contains('sp-check-read'));
     assert.ok(readBox.closest('tr').classList.contains('sp-read'));
+
+    // 未读：无灰色类
+    assert.strictEqual(unreadBox.disabled, false);
+    assert.strictEqual(unreadBox.classList.contains('sp-check-read'), false);
+
+    // 批量选择未选：已读不自动勾选，未读被勾选
+    w.document.getElementById('sp-select-unread').dispatchEvent(new w.Event('click'));
+    assert.strictEqual(readBox.checked, false);
+    assert.strictEqual(unreadBox.checked, true);
+
+    // 已读可手动勾选
+    readBox.checked = true;
+    assert.strictEqual(readBox.checked, true);
 });
 
 test('read.php 页面打开即记录已读', function () {
@@ -169,9 +184,12 @@ test('按钮行为：批量选择 / 取消选择 / 打开已选', async function
     assert.ok(opened.some(function (u) { return u.includes('tid-6001'); }));
     assert.ok(opened.some(function (u) { return u.includes('tid-6002'); }));
 
-    // 打开后标记为已读并置灰
+    // 打开后标记为已读并置灰，复选框带灰色类但不 disabled（可手动再次勾选）
     const stored = JSON.parse(w.localStorage.getItem('southplus_read_threads') || '[]');
     assert.ok(stored.includes('6001'));
     assert.ok(stored.includes('6002'));
-    assert.ok(w.document.querySelector('input.sp-check[data-tid="6001"]').disabled);
+    const box6001 = w.document.querySelector('input.sp-check[data-tid="6001"]');
+    assert.ok(box6001.classList.contains('sp-check-read'));
+    assert.ok(box6001.closest('tr').classList.contains('sp-read'));
+    assert.strictEqual(box6001.disabled, false);
 });

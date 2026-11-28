@@ -1,6 +1,6 @@
 {
   "name": "southplus-batch-open",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "南+ South Plus 油猴脚本：批量打开帖子与记录已读",
   "scripts": {

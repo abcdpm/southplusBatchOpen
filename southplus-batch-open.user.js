@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         South Plus 批量打开 & 已读记录
 // @namespace    https://south-plus.net/
-// @version      1.2.0
+// @version      1.2.1
 // @description  在 south-plus.net 板块列表页 / 搜索结果页为每个帖子名左侧添加复选框，支持批量勾选/打开，并用 localStorage 记录已读帖子（已读帖子灰显且默认不勾选）
 // @author       Paccu
 // @match        http://south-plus.net/thread.php*

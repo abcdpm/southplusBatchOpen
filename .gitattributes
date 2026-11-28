@@ -1,0 +1,2 @@
+# 确保 git hooks 脚本始终使用 LF 换行，避免 Windows 下被转换为 CRLF 导致 sh 无法执行
+.githooks/** text eol=lf

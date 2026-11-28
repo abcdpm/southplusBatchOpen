@@ -210,7 +210,8 @@
     }
 
     function scanThreads() {
-        var rows = document.querySelectorAll('#ajaxtable tbody tr.tr3.t_one');
+        // 板块列表（#ajaxtable）与搜索结果页（无 id 的「主题列表」表格）的结果行 class 均为 tr3
+        var rows = document.querySelectorAll('tr.tr3');
         for (var i = 0; i < rows.length; i++) {
             processThreadRow(rows[i]);
         }
@@ -305,7 +306,9 @@
             markCurrentPageReadIfNeeded();
             return;
         }
-        if (!isListPage() || !document.getElementById('ajaxtable')) return;
+        if (!isListPage()) return;
+        // 板块列表有 #ajaxtable；搜索结果页无该 id，但存在 tr3 结果行
+        if (!document.getElementById('ajaxtable') && !document.querySelector('tr.tr3')) return;
 
         injectStyle();
         buildToolbar();

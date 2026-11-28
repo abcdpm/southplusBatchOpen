@@ -38,6 +38,33 @@ function buildThreadHtml(rows) {
         '</body></html>';
 }
 
+// 构造真实 search.php 搜索结果页结构（无 #ajaxtable、结果行 tr3 tac、标题为 th、链接带 -keyword-）
+function buildSearchHtml(rows) {
+    const trs = rows.map(function (r) {
+        const kw = encodeURIComponent('关键词');
+        return '<tr class="tr3 tac">' +
+            '<td class="y-style"><img src="images/colorImagination/thread/topichot.gif" border="0"></td>' +
+            '<th class="y-style tal">&nbsp;<a href="read.php?tid-' + r.tid + '-keyword-' + kw + '.html" target="_blank"><b><font color="#0000FF">' + r.title + '</font></b></a></th>' +
+            '<td class="y-style"><a href="thread.php?fid-4.html">实用动画</a></td>' +
+            '<td class="smalltxt y-style"><a href="u.php">作者</a><br />2026-01-01</td>' +
+            '<td class="y-style">24</td>' +
+            '<td class="y-style">5922</td>' +
+            '<td class="y-style"><a href="read.php?tid-' + r.tid + '-page-e.html#a" target="_blank">2026-01-01</a><br />by: 作者</td>' +
+            '</tr>';
+    }).join('\n');
+
+    return '<!DOCTYPE html><html><head>' +
+        '<title>搜索 - 南+ South Plus</title>' +
+        '<base id="headbase" href="//south-plus.net/">' +
+        '</head><body>' +
+        '<div class="t"><table width="100%" cellspacing="0" cellpadding="0">' +
+        '<tr><td colspan="7" class="h">主题列表</td></tr>' +
+        '<tr class="tr2 tac"><td>状态</td><td>标题</td><td>论坛</td><td>作者</td><td>回复</td><td>人气</td><td>最后发表</td></tr>' +
+        trs +
+        '</table></div>' +
+        '</body></html>';
+}
+
 function makeWindow(url, html) {
     const vc = new VirtualConsole(); // 吞掉 jsdom 解析页面 CSS 的告警
     const dom = new JSDOM(html, {
@@ -72,13 +99,17 @@ test('thread.php 板块列表页注入复选框与工具栏', function () {
     assert.ok(w.document.getElementById('sp-batch-open-style'));
 });
 
-test('search.php 搜索结果页同样注入', function () {
+test('search.php 搜索结果页注入（无 ajaxtable、th 标题、keyword 链接）', function () {
     const rows = [{ tid: 2001, title: '搜索结果1' }, { tid: 2002, title: '搜索结果2' }];
-    const { w } = makeWindow('https://south-plus.net/search.php?step=2&key=MMD', buildThreadHtml(rows));
+    const { w } = makeWindow('https://south-plus.net/search.php?step=2&key=MMD', buildSearchHtml(rows));
     run(w);
 
     assert.strictEqual(w.document.querySelectorAll('input.sp-check').length, 2);
     assert.ok(w.document.getElementById('sp-open-selected'));
+    // 标题单元格是 th，且 tid 应从带 -keyword- 的链接中正确提取
+    const box = w.document.querySelector('input.sp-check');
+    assert.strictEqual(box.dataset.tid, '2001');
+    assert.strictEqual(box.closest('th').tagName.toLowerCase(), 'th');
 });
 
 test('带 -fpage 的链接也能正确提取 tid', function () {
